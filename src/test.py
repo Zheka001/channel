@@ -80,8 +80,12 @@ def run_random_experiment():
 
             if len(results) % 10 == 0:
                 time_per_exp = round((now() - start_time) / len(results), 2)
+                total = round(now() - start_time)
                 estimated = (length - len(results) - 1) * time_per_exp
-                print(f'Process {len(results)} experiments. Time per experiment: {time_per_exp} s, '
+                print(f'Process {len(results)} experiments. '
+                      f'Time per experiment: {time_per_exp} s, '
+                      f'total: {int(total // 3600):02d}:{int(total % 3600 // 60):02d}:'
+                      f'{int(total % 60):02d}, '
                       f'remained: {int(estimated // 3600):02d}:{int(estimated % 3600 // 60):02d}:'
                       f'{int(estimated % 60):02d}')
                 write_results(results, result_filename)

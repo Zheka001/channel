@@ -1,10 +1,7 @@
 import json
-
 import numpy as np
 import pandas as pd
-import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.use('TkAgg')
 from pathlib import Path
 
 
@@ -29,5 +26,5 @@ class Visualizer:
 
 
 if __name__ == '__main__':
-    vis = Visualizer('../data/random_results.json')
+    vis = Visualizer('data/random_results.json')
     vis.run()

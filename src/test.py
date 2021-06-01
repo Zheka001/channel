@@ -1,5 +1,6 @@
 import json
 import random
+import concurrent.futures
 from random import randint
 from time import monotonic as now
 
@@ -69,16 +70,21 @@ def run_random_experiment():
     results = list()
     start_time = now()
 
-    # todo: для ускорения можно заменить на ThreadPoolExecutor
-    for i, cfg in enumerate(configs):
-        results.append(run_experiment(cfg))
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+        futures = list()
+        for cfg in configs:
+            futures.append(executor.submit(run_experiment, cfg))
 
-        if i % 10 == 0 and i != 0:
-            time_per_exp = round((now() - start_time) / 10, 2)
-            estimated = (length - i - 1) * time_per_exp
-            print(f'Process {i} experiments. Time per experiment: {time_per_exp} s, '
-                  f'remained: {estimated / 3600:02f}:{estimated % 3600 / 60:02f}:{estimated % 60:02f}')
-            write_results(results, result_filename)
+        for future in concurrent.futures.as_completed(futures):
+            results.append(future.result())
+
+            if len(results) % 10 == 0:
+                time_per_exp = round((now() - start_time) / len(results), 2)
+                estimated = (length - len(results) - 1) * time_per_exp
+                print(f'Process {len(results)} experiments. Time per experiment: {time_per_exp} s, '
+                      f'remained: {int(estimated // 3600):02d}:{int(estimated % 3600 // 60):02d}:'
+                      f'{int(estimated % 60):02d}')
+                write_results(results, result_filename)
 
     print(f'Full experiment took {round(now() - start, 2)} sec')
 

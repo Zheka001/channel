@@ -10,7 +10,7 @@ from src.erasure_generator import ErasureGenerator
 
 # todo: переписать через класс
 def experiment_iteration(config, verbose=False):
-    codec = ChannelCodec(config['k'], config['n'])
+    codec = ChannelCodec(config['k'], config['n'], config['with_identity'])
     gen = ErasureGenerator(config['erasure_generator'])
 
     successful_count = 0
@@ -44,6 +44,7 @@ def generate_random_configs(n, k, length=1000):
         cfg = {
             'n': n,
             'k': k,
+            'with_identity': True,
             'erasure_generator': {
                 'operation': 'group',
                 'simple_probability': 0,
@@ -64,7 +65,7 @@ def write_results(results, filename):
 def run_random_experiment():
     start = now()
     length = 500
-    result_filename = 'data/random_results_500.json'
+    result_filename = 'data/random_results_identity_500.json'
     configs = generate_random_configs(10, 5, length)
 
     results = list()

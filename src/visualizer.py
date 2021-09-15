@@ -20,11 +20,15 @@ class Visualizer:
         df = pd.DataFrame(self.info)
         df['group'] = 1 - df['group']
         df['simple'] = 1 - df['simple']
-        df.plot(x='probability')
-        plt.plot(np.linspace(0.0, 0.5), np.linspace(0.0, 0.5))
+        kernel_size = 20
+        kernel = np.ones(kernel_size) / kernel_size
+        df['group erasures'] = np.convolve(df['group'], kernel, mode='same')
+        df['simple erasures'] = np.convolve(df['simple'], kernel, mode='same')
+        df[['group erasures', 'simple erasures', 'probability']].plot(x='probability')
+        plt.plot(np.linspace(0.0, 0.5), np.linspace(0.0, 0.5), label='simple transmitting')
         plt.show()
 
 
 if __name__ == '__main__':
-    vis = Visualizer('data/random_results.json')
+    vis = Visualizer('data/random_results_500.json')
     vis.run()

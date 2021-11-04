@@ -16,7 +16,7 @@ def experiment_iteration(config, verbose=False):
     successful_count = 0
     total_experiments = 1000
     for i in range(total_experiments):
-        message = [randint(0, 1) for _ in range(5)]
+        message = [randint(0, 1) for _ in range(config['k'])]
         encoded = codec.encode(message)
         erasures = gen.erase(encoded, op_type=config['erasure_generator']['operation'])
         decode, _ = codec.decode(encoded, erasures)
@@ -44,7 +44,7 @@ def generate_random_configs(n, k, length=1000):
         cfg = {
             'n': n,
             'k': k,
-            'with_identity': True,
+            'with_identity': False,
             'erasure_generator': {
                 'operation': 'group',
                 'simple_probability': 0,
@@ -62,34 +62,37 @@ def write_results(results, filename):
         json.dump(results, file, indent=4)
 
 
-def run_random_experiment():
+def run_random_experiment(n, k):
     start = now()
     length = 500
-    result_filename = 'data/random_results_identity_500.json'
-    configs = generate_random_configs(10, 5, length)
+    result_filename = f'data/random_results_{n}_{k}.json'
+    configs = generate_random_configs(n, k, length)
 
     results = list()
     start_time = now()
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
-        futures = list()
-        for cfg in configs:
-            futures.append(executor.submit(run_experiment, cfg))
+    # with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+    #     futures = list()
+    #     for cfg in configs:
+    #         futures.append(executor.submit(run_experiment, cfg))
+    #
+    #     for future in concurrent.futures.as_completed(futures):
+    #         results.append(future.result())
 
-        for future in concurrent.futures.as_completed(futures):
-            results.append(future.result())
+    for cfg in configs:
+        results.append(run_experiment(cfg))
 
-            if len(results) % 10 == 0:
-                time_per_exp = round((now() - start_time) / len(results), 2)
-                total = round(now() - start_time)
-                estimated = (length - len(results) - 1) * time_per_exp
-                print(f'Process {len(results)} experiments. '
-                      f'Time per experiment: {time_per_exp} s, '
-                      f'total: {int(total // 3600):02d}:{int(total % 3600 // 60):02d}:'
-                      f'{int(total % 60):02d}, '
-                      f'remained: {int(estimated // 3600):02d}:{int(estimated % 3600 // 60):02d}:'
-                      f'{int(estimated % 60):02d}')
-                write_results(results, result_filename)
+        if len(results) % 10 == 0:
+            time_per_exp = round((now() - start_time) / len(results), 2)
+            total = round(now() - start_time)
+            estimated = (length - len(results) - 1) * time_per_exp
+            print(f'Process {len(results)} experiments. '
+                  f'Time per experiment: {time_per_exp} s, '
+                  f'total: {int(total // 3600):02d}:{int(total % 3600 // 60):02d}:'
+                  f'{int(total % 60):02d}, '
+                  f'remained: {int(estimated // 3600):02d}:{int(estimated % 3600 // 60):02d}:'
+                  f'{int(estimated % 60):02d}')
+            write_results(results, result_filename)
 
     print(f'Full experiment took {round(now() - start, 2)} sec')
 
@@ -99,4 +102,5 @@ def run_random_experiment():
 
 
 if __name__ == '__main__':
-    run_random_experiment()
+    for n, k in ((14, 7), (12, 6 )):
+        run_random_experiment(n, k)

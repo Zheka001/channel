@@ -1,5 +1,7 @@
 import numpy as np
 from random import shuffle, sample
+from itertools import combinations
+from math import comb
 from sympy import Matrix
 
 
@@ -8,6 +10,8 @@ class ChannelCodec:
         self.k = k
         self.n = n
         self._prepare_matrix(with_identity)
+
+        self._helper = dict()
 
     def encode(self, message):
         return np.dot(message, self.matrix) % 2
@@ -31,6 +35,41 @@ class ChannelCodec:
                 result = np.dot(np.array(message)[elements], inv_m).astype(np.uint8)
                 result = result % 2
                 return result.tolist(), 'ok'
+
+        return list(), 'too much attempts'
+
+    def decode_hybrid(self, message, erasures):
+        not_erasure_indexes = [i for i, (m, e) in enumerate(zip(message, erasures)) if not e]
+        if len(not_erasure_indexes) < self.k:
+            return list(), 'too much erasures'
+
+        count = comb(len(not_erasure_indexes), self.k)
+        for i, elements in enumerate(combinations(not_erasure_indexes, self.k)):
+            fast_decoding = self._helper.get(elements, None)
+            if fast_decoding:
+                if fast_decoding == 'uninvertible':
+                    continue
+                else:
+                    result = np.dot(np.array(message)[list(elements)], np.array(fast_decoding)).astype(np.uint8)
+                    result = result % 2
+                    return result.tolist(), 'fast'
+
+            squared_matrix = self.matrix[:, elements]
+            squared_matrix = Matrix(squared_matrix)
+            det = squared_matrix.det()
+            if det != 0:
+                try:
+                    inv_m = squared_matrix.inv_mod(2)
+                except ValueError:
+                    self._helper[elements] = 'uninvertible'
+                    continue
+                inv_m = np.asarray(inv_m).astype(int)
+                self._helper[elements] = inv_m.tolist()
+                result = np.dot(np.array(message)[list(elements)], inv_m).astype(np.uint8)
+                result = result % 2
+                return result.tolist(), 'ok'
+            else:
+                self._helper[elements] = 'uninvertible'
 
         return list(), 'too much attempts'
 

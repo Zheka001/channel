@@ -19,7 +19,7 @@ def experiment_iteration(config, verbose=False):
         message = [randint(0, 1) for _ in range(config['k'])]
         encoded = codec.encode(message)
         erasures = gen.erase(encoded, op_type=config['erasure_generator']['operation'])
-        decode, _ = codec.decode(encoded, erasures)
+        decode, _ = codec.decode_hybrid(encoded, erasures)
 
         successful_count += 1 if decode == message else 0
 
@@ -102,5 +102,6 @@ def run_random_experiment(n, k):
 
 
 if __name__ == '__main__':
-    for n, k in ((14, 7), (12, 6 )):
+    for n, k in ((14, 7), (12, 6)):
         run_random_experiment(n, k)
+    # run_random_experiment(10, 5)

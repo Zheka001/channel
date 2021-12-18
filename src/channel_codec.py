@@ -21,8 +21,7 @@ class ChannelCodec:
         if len(not_erasure_indexes) < self.k:
             return list(), 'too much erasures'
 
-        for _ in range(100):
-            elements = sample(not_erasure_indexes, k=self.k)
+        for elements in combinations(not_erasure_indexes, self.k):
             squared_matrix = self.matrix[:, elements]
             squared_matrix = Matrix(squared_matrix)
             det = squared_matrix.det()
@@ -32,7 +31,7 @@ class ChannelCodec:
                 except ValueError:
                     continue
                 inv_m = np.asarray(inv_m).astype(int)
-                result = np.dot(np.array(message)[elements], inv_m).astype(np.uint8)
+                result = np.dot(np.array(message)[list(elements)], inv_m).astype(np.uint8)
                 result = result % 2
                 return result.tolist(), 'ok'
 
@@ -43,8 +42,7 @@ class ChannelCodec:
         if len(not_erasure_indexes) < self.k:
             return list(), 'too much erasures'
 
-        count = comb(len(not_erasure_indexes), self.k)
-        for i, elements in enumerate(combinations(not_erasure_indexes, self.k)):
+        for elements in combinations(not_erasure_indexes, self.k):
             fast_decoding = self._helper.get(elements, None)
             if fast_decoding:
                 if fast_decoding == 'uninvertible':

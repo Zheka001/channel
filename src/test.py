@@ -102,6 +102,6 @@ def run_random_experiment(n, k):
 
 
 if __name__ == '__main__':
-    for n, k in ((14, 7), (12, 6)):
-        run_random_experiment(n, k)
-    # run_random_experiment(10, 5)
+    # for n, k in ((14, 7), (12, 6)):
+    #     run_random_experiment(n, k)
+    run_random_experiment(10, 5)

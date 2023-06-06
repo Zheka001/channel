@@ -97,3 +97,4 @@ config.yaml
 /resources/
 !/resources/stop_words
 /data
+/journal

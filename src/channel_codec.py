@@ -35,7 +35,7 @@ class ChannelCodec:
                 result = result % 2
                 return result.tolist(), 'ok'
 
-        return list(), 'too much attempts'
+        return list(), 'is not invertible'
 
     def decode_hybrid(self, message, erasures):
         not_erasure_indexes = [i for i, (m, e) in enumerate(zip(message, erasures)) if not e]
@@ -69,7 +69,7 @@ class ChannelCodec:
             else:
                 self._helper[elements] = 'uninvertible'
 
-        return list(), 'too much attempts'
+        return list(), 'is not invertible'
 
     def _prepare_matrix(self, with_identity):
         columns = self._prepare_common_columns(self.n) if not with_identity else self._prepare_identity_columns()

@@ -26,10 +26,10 @@ class ErasureGenerator:
 
     def _init_group_erasures(self):
         self._state = 0
-        self._b2g = self._config['bad_to_good']
-        self._g2b = self._config['good_to_bad']
+        self._b2g = self._config.get('bad_to_good', None)
+        self._g2b = self._config.get('good_to_bad', None)
         self._transitions = [self._g2b, self._b2g]
-        self._g_prob = self._config['group_probability']
+        self._g_prob = self._config.get('group_probability', None)
 
     def _update_state(self):
         sample = random()

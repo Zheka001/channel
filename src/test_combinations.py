@@ -8,7 +8,7 @@ from math import floor, factorial, comb
 from itertools import product
 from tqdm import tqdm
 
-# todo: скопировать в нужный проект по каналу
+
 class TestCombinations:
     def __init__(self, q, n, d, e):
         self.q = q
@@ -30,7 +30,7 @@ class TestCombinations:
 
         print(self.original_codeword, self.erased_codeword, self.erased_positions)
         self.test_formula()
-        # self.test_permutations()
+        self.test_permutations()
 
     def erase(self, codeword):
         erased_codeword = codeword.copy()
@@ -67,27 +67,27 @@ class TestCombinations:
 
     def test_formula(self):
         good = 0
-        for i in range(self.errors_decoding, self.e + 1):
-            good += pow(self.q - 1, self.e - i) * comb(self.e, i)
+        for i in range(self.e - self.errors_decoding, self.e + 1):
+            good += pow(self.q - 1, self.e - i) * comb(self.e, self.e - i)
 
         total = pow(self.q, self.e)
         print(f'formula value = {good / total}')
         print(f'total = {total}, good = {good}')
 
         print('full probabilities: ')
-        mult_result = 1
-        i = 0
-        while total > good:
-            cur_prob = good / total
-            mult_result *= (1 - cur_prob)
-            result = 1 - mult_result
-            total = total - 1
-            i += 1
-            print(i, round(result, 3))
-
-            if result > 0.97:
-                break
+        # mult_result = 1
+        # i = 0
+        # while total > good:
+        #     cur_prob = good / total
+        #     mult_result *= (1 - cur_prob)
+        #     result = 1 - mult_result
+        #     total = total - 1
+        #     i += 1
+        #     print(i, round(result, 3))
+        #
+        #     if result > 0.97:
+        #         break
 
 
 if __name__ == '__main__':
-    TestCombinations(q=9, n=31, d=10, e=9).run()
+    TestCombinations(q=17, n=10, d=3, e=2).run()

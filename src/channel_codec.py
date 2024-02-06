@@ -71,6 +71,41 @@ class ChannelCodec:
 
         return list(), 'is not invertible'
 
+    def decode_belief_prop(self, message, erasures):
+        erasure_indexes = [i for i, (m, e) in enumerate(zip(message, erasures)) if e]
+        if len(erasure_indexes) > self.n - self.k:
+            return list(), 'too much erasures'
+
+        matrix = self.matrix.copy()
+        # обнуляем стертые позиции
+        matrix[:, erasure_indexes] = np.zeros(shape=(self.k, len(erasure_indexes)))
+        message_inside = message.copy()
+        result = np.zeros(self.k)
+        counter = 0
+        while matrix.sum() != 0:
+            index_deg1 = np.where(matrix.sum(axis=0) == 1)
+            if len(index_deg1[0]) == 0:
+                return list(), 'no vector with deg 1'
+            col_index = index_deg1[0][0]
+            value = message_inside[col_index]
+            cur_column = matrix[:, col_index]
+            row_index = np.where(cur_column == 1)[0]
+            result[row_index] = value
+            xx = np.where(matrix[row_index, :] == 1)
+            for x in xx:
+                message_inside[x] += value
+                message_inside[x] %= 2
+                matrix[row_index, x] = 0
+            counter += 1
+
+        return result.tolist(), 'ok'
+
+
+
+
+
+
+
     def _prepare_matrix(self, with_identity):
         columns = self._prepare_common_columns(self.n) if not with_identity else self._prepare_identity_columns()
         self.matrix = np.array(list(columns), dtype=np.uint8).transpose()
@@ -93,8 +128,8 @@ class ChannelCodec:
         return columns
 
     def _prepare_identity_columns(self):
-        columns = self._prepare_common_columns(count=self.n - self.k)
-        columns.update({tuple([0 if j != i else 1 for j in range(self.k)]) for i in range(self.k)})
+        columns = [tuple([0 if j != i else 1 for j in range(self.k)]) for i in range(self.k)]
+        columns.extend(self._prepare_common_columns(count=self.n - self.k))
         return columns
 
     @staticmethod

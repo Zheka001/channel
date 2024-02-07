@@ -3,12 +3,13 @@ import random
 from random import randint
 from time import monotonic as now
 
+import numpy as np
+
 from src.channel_codec import ChannelCodec
 
 
 if __name__ == '__main__':
     cc = ChannelCodec(5, 10)
-    erasure_count = 10
     messages_count = 10000
 
     # заменить на функцию генерации
@@ -31,7 +32,7 @@ if __name__ == '__main__':
         if mes != decoded:
             mistakes += 1
     total_time = now() - global_start_time
-    print(f'Hybrid: {total_time}, mistakes: {mistakes}')
+    print(f'Hybrid: {total_time}, mistakes: {mistakes}, per second: {messages_count / sum(times_hybrid)}')
 
     global_start_time = now()
     times = list()
@@ -44,7 +45,7 @@ if __name__ == '__main__':
         if mes != decoded:
             mistakes += 1
     total_time = now() - global_start_time
-    print(f'Common: {total_time}, mistakes: {mistakes}')
+    print(f'Common: {total_time}, mistakes: {mistakes}, per second: {messages_count / sum(times)}')
 
     # print(f'Begining: {times[:10]}')
     # print(f'End: {times[-10:]}')
@@ -54,6 +55,8 @@ if __name__ == '__main__':
         'hybrid_times': times_hybrid,
         'common_times': times,
     }
+    ratio = sum(times) / sum(times_hybrid)
+    print(f'ratio: {ratio}')
 
     with open('data/times.json', 'w') as file:
         json.dump(data, file)

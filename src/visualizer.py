@@ -82,6 +82,35 @@ class Visualizer:
         self._increase_font_size(ax)
         plt.savefig(self.path_to_save)
 
+    def hybrid_plot(self, info):
+        sns.set_theme(style='darkgrid')
+        fig, ax = plt.subplots(1, 1, figsize=[12, 10])
+        data = self._read_json(Path(info['file']))
+        # data preprocessing
+        df = pd.DataFrame(data)
+        kernel_size = 4
+        kernel = np.ones(kernel_size) / kernel_size
+        hybrid_array = np.pad(df['hybrid_times'], (kernel_size // 2, kernel_size // 2 - 1), mode='edge')
+        df['hybrid_times'] = np.convolve(hybrid_array, kernel, mode='valid')
+        common_array = np.pad(df['common_times'], (kernel_size // 2, kernel_size // 2 - 1), mode='edge')
+        df['common_times'] = np.convolve(common_array, kernel, mode='valid')
+
+        # plot figure
+        fig = sns.lineplot(data=df, x=df.index, y='common_times', label=info['labels'][0], color='black',
+                           linestyle='-', ax=ax, linewidth=2)
+        fig = sns.lineplot(data=df, x=df.index, y='hybrid_times', label=info['labels'][1], color='black',
+                           linestyle='--', ax=ax, linewidth=2)
+        title = info['title']
+        fig.set(title=title + '\n' if title is not None else title,
+                xlabel='Номер итерации',
+                ylabel='Время декодирования, c',
+                # xlim=[-0.01, 0.03],
+                ylim=[0.0, 0.03])
+        plt.setp(ax.get_legend().get_texts(), fontsize='24')
+        self._increase_font_size(ax)
+        plt.savefig(self.path_to_save)
+        print(f'save figure to {self.path_to_save}')
+
     @staticmethod
     def _read_json(path_to_file):
         with open(path_to_file, 'r') as file:
@@ -141,8 +170,6 @@ class Visualizer:
 
 
 if __name__ == '__main__':
-    Visualizer(Path('data/figure_2.png')).combine()
-
     cfg1 = {
         'file1': 'data/random_results_10_5.json',
         'title1': 'Метод равновесных столбцов',
@@ -179,9 +206,16 @@ if __name__ == '__main__':
         'labels': ['равномерные стирания для параметров (9, 5)', 'группирующиеся стирания для параметров (10, 5)']
     }
 
-    # первый и второй рисунок
-    for path_to_figure, cfg in zip(['data/figure_1.png', 'data/figure_3.png'], [cfg1, cfg2]):
-        Visualizer(Path(path_to_figure)).pair_plot_by_letters(cfg)
+    cfg_hybrid_times = {
+        'file': 'data/times.json',
+        'title': 'Сравнение времени работы гибридного и базового\n алгоритмов декодирования',
+        'labels': ['базовый алгоритм', 'гибридный алгоритм']
+    }
 
-    Visualizer(Path('data/figure_4.png')).theory_plot(cfg3)
-    Visualizer(Path('data/figure_5.png')).common_plot(cfg4)
+    # Visualizer(Path('data/figure_2.png')).combine()
+    # for path_to_figure, cfg in zip(['data/figure_1.png', 'data/figure_3.png'], [cfg1, cfg2]):
+    #     Visualizer(Path(path_to_figure)).pair_plot_by_letters(cfg)
+    #
+    # Visualizer(Path('data/figure_4.png')).theory_plot(cfg3)
+    # Visualizer(Path('data/figure_5.png')).common_plot(cfg4)
+    Visualizer(Path('data/hybrid_times.png')).hybrid_plot(cfg_hybrid_times)
